@@ -7,12 +7,12 @@ use App\Models\CalendarioExamen;
 use App\Models\SolicitudExamen;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class SolicitudExamenController extends Controller
 {
     public function index()
     {
-        //  TRAER MÓDULOS
         $modulos = CalendarioExamen::select('clave','modulo')
             ->groupBy('clave','modulo')
             ->orderBy('clave')
@@ -21,14 +21,20 @@ class SolicitudExamenController extends Controller
         return view('alumnos.solicitar_examen', compact('modulos'));
     }
 
-    //  NUEVO: FECHAS FILTRADAS POR MÓDULO + ETAPA
+    // Fechas filtradas por módulo + etapa
     public function fechasFiltradas($clave, $etapa)
     {
         $fechas = CalendarioExamen::where('clave', $clave)
-            ->where('fase', $etapa)
-            ->whereDate('fecha', '>=', now()) 
+            ->where('etapa', $etapa)
+            ->whereDate('fecha', '>=', now())
             ->orderBy('fecha', 'asc')
-            ->get();
+            ->get(['id','fecha','hora']);
+
+        // Formatear fecha
+        $fechas = $fechas->map(function($f){
+            $f->fecha_formateada = Carbon::parse($f->fecha)->format('d/m/Y');
+            return $f;
+        });
 
         return response()->json($fechas);
     }

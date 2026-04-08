@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Solicitar Examen</title>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Slab:wght@500;700&display=swap');
-
 body{
     margin:0;
     font-family:'Roboto', sans-serif;
@@ -16,7 +14,6 @@ body{
     align-items:center;
     justify-content:center;
 }
-
 .container{
     background:#ffffff;
     padding:45px 50px;
@@ -25,7 +22,6 @@ body{
     max-width:520px;
     border:1px solid #dcdcdc;
 }
-
 h2{
     text-align:center;
     font-family:'Roboto Slab', serif;
@@ -33,14 +29,12 @@ h2{
     margin-bottom:35px;
     font-weight:700;
 }
-
 label{
     font-weight:600;
     color:#333;
     display:block;
     margin-bottom:6px;
 }
-
 select{
     width:100%;
     padding:12px;
@@ -50,12 +44,10 @@ select{
     font-size:15px;
     background:#ffffff;
 }
-
 select:focus{
     outline:none;
     border-color:#1A3E5C;
 }
-
 button{
     width:100%;
     padding:13px;
@@ -67,11 +59,9 @@ button{
     font-weight:600;
     cursor:pointer;
 }
-
 button:hover{
     background:#16324a;
 }
-
 .success{
     background:#1A3E5C;
     color:#ffffff;
@@ -96,7 +86,7 @@ button:hover{
 <form method="POST" action="{{ route('alumno.examen.guardar') }}">
 @csrf
 
-<!--  MÓDULO (PRIMERO) -->
+<!-- MÓDULO -->
 <label>Seleccione el módulo</label>
 <select id="modulo" name="modulo" required>
     <option value="">Seleccione un módulo</option>
@@ -105,7 +95,7 @@ button:hover{
     @endforeach
 </select>
 
-<!--  ETAPA -->
+<!-- ETAPA -->
 <label>Seleccione la etapa</label>
 <select id="etapa" name="etapa" required>
     <option value="">Seleccione etapa</option>
@@ -113,7 +103,7 @@ button:hover{
     <option value="B">B</option>
 </select>
 
-<!--  FECHA -->
+<!-- FECHA -->
 <label>Seleccione la fecha disponible</label>
 <select id="fecha" name="fecha_id" required>
     <option value="">Seleccione fecha</option>
@@ -125,28 +115,36 @@ button:hover{
 </div>
 
 <script>
-//  CARGAR FECHAS (MÓDULO + ETAPA)
+// Función para cargar fechas según módulo y etapa
 function cargarFechas() {
     let modulo = document.getElementById('modulo').value;
     let etapa = document.getElementById('etapa').value;
 
+    console.log('Módulo:', modulo, 'Etapa:', etapa);
+
     if(modulo && etapa){
-        fetch('/alumno/fechas-filtradas/' + modulo + '/' + etapa)
+        let url = "{{ url('alumno/fechas-filtradas') }}/" + modulo + "/" + etapa;
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 let select = document.getElementById('fecha');
                 select.innerHTML = '<option value="">Seleccione fecha</option>';
 
-                data.forEach(f => {
-                    select.innerHTML += `<option value="${f.id}">
-                        ${f.fecha} - ${f.hora}
-                    </option>`;
-                });
-            });
+                if(data.length > 0){
+                    data.forEach(f => {
+                        select.innerHTML += `<option value="${f.id}">${f.fecha_formateada} - ${f.hora}</option>`;
+                    });
+                } else {
+                    select.innerHTML += '<option value="">No hay fechas disponibles</option>';
+                }
+
+                console.log('Fechas recibidas:', data);
+            })
+            .catch(err => console.error('Error al cargar fechas:', err));
     }
 }
 
-//  SE ACTIVA EN AMBOS
+// Eventos
 document.getElementById('modulo').addEventListener('change', cargarFechas);
 document.getElementById('etapa').addEventListener('change', cargarFechas);
 </script>
