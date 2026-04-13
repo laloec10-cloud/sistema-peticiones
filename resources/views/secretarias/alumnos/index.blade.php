@@ -45,59 +45,58 @@ table {
 }
 
 thead {
-    background: linear-gradient(90deg, #1A3E5C, #16314a);
-    color: #ffffff;
+    background: #1A3E5C;
+    color: white;
 }
 
 th {
-    padding: 15px;
+    padding: 12px;
     text-align: left;
-    font-size: 14px;
 }
 
 td {
-    padding: 14px;
-    border-bottom: 1px solid #eaeaea;
-    font-size: 14px;
-    color: #333;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
 }
 
 tbody tr:hover {
-    background-color: #f2f7fb;
+    background: #f2f7fb;
 }
 
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-edit {
-    background-color: #1A3E5C;
-    color: white;
-    padding: 7px 14px;
-    border-radius: 6px;
-    text-decoration: none;
+.actions a,
+.actions button {
+    padding: 6px 10px;
     font-size: 12px;
-}
-
-.btn-delete {
-    background-color: #c53030;
-    color: white;
-    padding: 7px 14px;
-    border-radius: 6px;
+    border-radius: 4px;
     border: none;
-    font-size: 12px;
     cursor: pointer;
+    text-decoration: none;
+    color: white;
 }
 
-.no-data {
-    margin-top: 20px;
-    font-style: italic;
-    color: #666;
-    text-align: center;
+.actions a {
+    background: #1A3E5C;
 }
 
-/*  BOTÓN REGRESAR */
+.actions button {
+    background: #c53030;
+}
+
+/* 🔎 BUSCADOR estilo igual a calificaciones */
+.buscador {
+    width: 90%;
+    margin: 20px auto;
+    text-align: right;
+}
+
+.buscador input {
+    padding: 8px;
+    width: 250px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* 🔙 botón regresar */
 .regresar {
     max-width: 1200px;
     margin: 15px auto;
@@ -112,11 +111,6 @@ tbody tr:hover {
     text-decoration: none;
     border-radius: 6px;
     font-size: 13px;
-    font-weight: 600;
-}
-
-.regresar a:hover {
-    background: #16314a;
 }
 </style>
 </head>
@@ -125,57 +119,78 @@ tbody tr:hover {
 
 <h1>Lista de Alumnos</h1>
 
+<!-- 🔎 BUSCADOR -->
+<div class="buscador">
+    <input type="text" id="buscar" placeholder="Buscar por nombre o matrícula...">
+</div>
+
 <div class="table-container">
 
-    @if(session('success'))
-        <div class="success-message">
-            {{ session('success') }}
-        </div>
-    @endif
+@if(session('success'))
+    <div class="success-message">
+        {{ session('success') }}
+    </div>
+@endif
 
-    @if($alumnos->count() > 0)
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Matrícula</th>
-                    <th>CURP</th>
-                    <th>Correo Electrónico</th>
-                    <th>Teléfono</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($alumnos as $alumno)
-                <tr>
-                    <td>{{ $alumno->nombre_completo }}</td>
-                    <td>{{ $alumno->matricula_inca }}</td>
-                    <td>{{ $alumno->curp }}</td>
-                    <td>{{ $alumno->correo }}</td>
-                    <td>{{ $alumno->telefono }}</td>
-                    <td class="actions">
-                        <a href="{{ route('secretaria.alumnos.edit', $alumno->id) }}" class="btn-edit">Editar</a>
+@if($alumnos->count() > 0)
 
-                        <form action="{{ route('secretaria.alumnos.destroy', $alumno->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este alumno?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-delete">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @else
-        <p class="no-data">No hay alumnos registrados todavía.</p>
-    @endif
+<table id="tabla">
+    <thead>
+        <tr>
+            <th>Nombre Completo</th>
+            <th>Matrícula</th>
+            <th>CURP</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach($alumnos as $alumno)
+        <tr>
+            <td>{{ $alumno->nombre_completo }}</td>
+            <td>{{ $alumno->matricula_inca }}</td>
+            <td>{{ $alumno->curp }}</td>
+            <td>{{ $alumno->correo }}</td>
+            <td>{{ $alumno->telefono }}</td>
+
+            <td class="actions">
+                <a href="{{ route('secretaria.alumnos.edit', $alumno->id) }}">Editar</a>
+
+                <form action="{{ route('secretaria.alumnos.destroy', $alumno->id) }}" method="POST" style="display:inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" onclick="return confirm('¿Eliminar alumno?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+
+@else
+<p style="text-align:center;">No hay alumnos registrados</p>
+@endif
 
 </div>
 
-<!--  BOTÓN ABAJO DERECHA -->
 <div class="regresar">
-    <a href="{{ route('secretaria.dashboard') }}"> Regresar al menú</a>
+    <a href="{{ route('secretaria.dashboard') }}">Regresar al menú</a>
 </div>
+
+<script>
+// 🔎 BUSCADOR
+document.getElementById("buscar").addEventListener("keyup", function() {
+    let filtro = this.value.toLowerCase();
+    let filas = document.querySelectorAll("#tabla tbody tr");
+
+    filas.forEach(fila => {
+        let texto = fila.textContent.toLowerCase();
+        fila.style.display = texto.includes(filtro) ? "" : "none";
+    });
+});
+</script>
 
 </body>
 </html>
